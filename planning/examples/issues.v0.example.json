@@ -1,0 +1,70 @@
+{
+  "version": "v0",
+  "milestone": "v0",
+  "issues": [
+    {
+      "id": "PF-001",
+      "title": "Bootstrap project-specific README and architecture docs",
+      "type": "chore",
+      "summary": "Create initial product-facing docs from planning baseline.",
+      "problem": "Implementation starts without a clear shared understanding of scope and architecture.",
+      "scope": [
+        "Write project README with setup and workflow",
+        "Create SPEC.md with functional and non-functional requirements",
+        "Create ARCHITECTURE.md with components and data flow"
+      ],
+      "out_of_scope": [
+        "Feature implementation",
+        "Performance tuning"
+      ],
+      "acceptance_criteria": [
+        "README.md, SPEC.md, and ARCHITECTURE.md exist and are internally consistent",
+        "Documents include references to make check and AGENTS workflow"
+      ],
+      "how_to_verify": [
+        "Review files for consistency and completeness",
+        "Run make check"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:chore",
+        "priority:p1"
+      ],
+      "dependencies": [],
+      "estimate": "M"
+    },
+    {
+      "id": "PF-002",
+      "title": "Implement first feature slice from spec",
+      "type": "feature",
+      "summary": "Deliver the first user-visible feature slice based on approved spec.",
+      "problem": "No functional product behavior exists after planning baseline.",
+      "scope": [
+        "Implement first vertical feature slice",
+        "Add tests that cover happy path and key failure path"
+      ],
+      "out_of_scope": [
+        "Second-phase enhancements",
+        "UI polish beyond acceptance criteria"
+      ],
+      "acceptance_criteria": [
+        "Feature behaves as defined in SPEC.md for initial use case",
+        "Tests pass in CI and locally with make check"
+      ],
+      "how_to_verify": [
+        "Run make check",
+        "Execute documented feature verification steps from SPEC.md"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:feature",
+        "priority:p1"
+      ],
+      "dependencies": [
+        "PF-001"
+      ],
+      "estimate": "L"
+    }
+  ]
+}
+

@@ -1,0 +1,43 @@
+name: Feature
+description: Create a feature request with implementation-ready acceptance criteria.
+title: "feat: "
+labels:
+  - type:feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem are we solving and for whom?
+      placeholder: Describe the user problem and context.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What should be included in this issue?
+      placeholder: List concrete implementation scope.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Objective done conditions.
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+  - type: textarea
+    id: verify
+    attributes:
+      label: How To Verify
+      description: Exact commands or manual checks.
+      placeholder: |
+        - make check
+        - Manual verification step(s)
+    validations:
+      required: true
+

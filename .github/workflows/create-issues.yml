@@ -1,0 +1,50 @@
+name: Create Issues From Planning JSON
+
+on:
+  workflow_dispatch:
+    inputs:
+      input:
+        description: Path to issue JSON file
+        required: true
+        default: planning/examples/issues.v0.example.json
+        type: string
+      mode:
+        description: dry-run or apply
+        required: true
+        default: dry-run
+        type: choice
+        options:
+          - dry-run
+          - apply
+      milestone:
+        description: Milestone title
+        required: true
+        default: v0
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run issue creation script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python automation/create_issues.py \
+            --input "${{ inputs.input }}" \
+            --mode "${{ inputs.mode }}" \
+            --milestone "${{ inputs.milestone }}"
+

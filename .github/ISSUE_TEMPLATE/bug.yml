@@ -1,0 +1,46 @@
+name: Bug
+description: Report a bug with reproducible verification and fix criteria.
+title: "fix: "
+labels:
+  - type:bug
+body:
+  - type: textarea
+    id: bug
+    attributes:
+      label: Bug Description
+      description: What is broken?
+      placeholder: Describe expected vs actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Steps
+      description: Exact steps to reproduce.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Conditions that must be true for this bug to be considered fixed.
+      placeholder: |
+        - [ ] Bug no longer reproduces under documented steps
+        - [ ] Regression test added or updated
+    validations:
+      required: true
+  - type: textarea
+    id: verify
+    attributes:
+      label: How To Verify
+      description: Commands and checks to validate the fix.
+      placeholder: |
+        - make check
+        - Re-run reproduction steps and confirm expected outcome
+    validations:
+      required: true
+
