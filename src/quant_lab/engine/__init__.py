@@ -1,3 +1,5 @@
 """Engine layer package for position and equity simulation."""
 
-__all__: list[str] = []
+from .backtest import run_backtest
+
+__all__ = ["run_backtest"]
