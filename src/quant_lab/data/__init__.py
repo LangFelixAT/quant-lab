@@ -1,3 +1,5 @@
 """Data layer package for historical price ingestion and normalization."""
 
-__all__: list[str] = []
+from .market_data import fetch_price_data, normalize_price_data
+
+__all__ = ["fetch_price_data", "normalize_price_data"]
