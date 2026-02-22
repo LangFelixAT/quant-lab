@@ -1,3 +1,5 @@
 """Strategy layer package for deterministic signal generation."""
 
-__all__: list[str] = []
+from .sma import generate_sma_signals
+
+__all__ = ["generate_sma_signals"]
