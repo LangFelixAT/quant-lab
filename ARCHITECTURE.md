@@ -137,7 +137,7 @@ Responsibilities:
 - External fetch failures:
   - Surface data-source error in CLI with non-zero exit.
 - Contract violations:
-  - Raise typed runtime error with context for debug/test assertions.
+  - Raise explicit user-facing validation errors (current implementation uses `ValueError` messages).
 
 ## 7. Testing Strategy Map
 
@@ -160,9 +160,9 @@ Responsibilities:
   - artifact creation,
   - repeat-run output consistency.
 
-## 8. Project Structure Target
+## 8. Project Structure
 
-Planned v0 module layout:
+Current v0 module layout:
 
 - `src/quant_lab/data/`
 - `src/quant_lab/strategy/`
@@ -172,4 +172,5 @@ Planned v0 module layout:
 - `src/quant_lab/cli.py`
 - `tests/unit/`
 - `tests/integration/`
+- `tests/fixtures/`
 - `outputs/` (runtime artifacts, not committed unless explicitly required)
