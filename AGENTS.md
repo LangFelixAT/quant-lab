@@ -237,3 +237,66 @@ Speed is secondary to correctness, traceability, determinism, and
 reproducibility.
 When in doubt, do less and ask — a small, correct PR
 is always preferable to a large, speculative one.
+
+------------------------------------------------------------------------
+
+# Project-Specific Additions (Quant Lab v0)
+
+These additions are project-specific execution details and do not
+override the global governance rules above.
+
+## Project Commands
+
+Primary quality gate:
+
+    make check
+
+Fallback when `make` is unavailable:
+
+    ruff format --check .
+    ruff check .
+    pytest -q
+
+Manual CLI verification command (once CLI exists):
+
+    python -m quant_lab.cli backtest --symbol SPY --start 2020-01-01 --end 2021-12-31 --short-window 20 --long-window 50 --initial-cash 10000 --output-dir outputs/example
+
+Issue creation dry-run/apply:
+
+    python automation/create_issues.py --input planning/issues/v0.json --mode dry-run --milestone v0
+    python automation/create_issues.py --input planning/issues/v0.json --mode apply --milestone v0
+
+## Project Structure Contract
+
+Canonical implementation boundaries for v0:
+
+- `src/quant_lab/data/`: historical data ingestion and normalization.
+- `src/quant_lab/strategy/`: deterministic strategy signal generation.
+- `src/quant_lab/engine/`: portfolio simulation and equity curve logic.
+- `src/quant_lab/metrics/`: performance metric calculations.
+- `src/quant_lab/reporting/`: artifact persistence and plotting.
+- `src/quant_lab/cli.py`: user entrypoint and orchestration.
+- `tests/unit/`: isolated module tests.
+- `tests/integration/`: offline end-to-end verification.
+- `outputs/`: runtime artifacts location for local/manual runs.
+
+## Quant Lab v0 Constraints
+
+- Single asset backtesting only.
+- Daily bars only.
+- Long/cash strategy execution only.
+- No fees/slippage/shorting/leverage in v0 unless explicitly required by
+  a future issue.
+- Do not introduce new third-party dependencies beyond the approved v0
+  stack (`pandas`, `numpy`, `matplotlib`, `yfinance`, `pytest`, `ruff`)
+  without explicit approval.
+- Tests must be deterministic and network-independent by default.
+
+## Issue Execution Guardrails
+
+- If issue acceptance criteria conflict with `SPEC.md` or
+  `ARCHITECTURE.md`, implement to issue acceptance criteria first.
+- Create a follow-up planning/docs issue for any discovered spec-doc
+  drift.
+- Do not silently change architectural direction during implementation
+  issues.

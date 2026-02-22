@@ -1,107 +1,98 @@
-# Project Factory Template
+# Quant Lab
 
-This repository is a factory template for new software projects.
+Quant Lab is a deterministic, single-asset backtesting lab for systematic strategy experimentation.
 
-It provides:
-- Enforced PR workflow with CI gates.
-- A stable developer and agent contract through `make check`.
-- Agent SOP for branch naming, PR structure, and issue linking.
-- Planning scaffolding from brief to issue JSON.
-- Optional automation to create GitHub issues from planning JSON.
+The `v0` scope is a minimal vertical slice: daily historical data ingestion, SMA crossover signals, long/cash portfolio simulation, core metrics, and an equity curve plot.
 
-It is not a product repository and not an installable Python package.
+## v0 Capabilities
 
-## Create a New Project
+- Download and normalize OHLCV daily price history for one symbol.
+- Generate SMA crossover trade signals.
+- Run a deterministic long/cash backtest.
+- Compute and report:
+  - CAGR
+  - Sharpe Ratio
+  - Maximum Drawdown
+- Save run artifacts (metrics and equity curve plot).
 
-1. In GitHub, click **Use this template**.
-2. Clone your new repository.
-3. Open it in VS Code.
-4. Start planning from `planning/BRIEF.template.md`.
+## Non-Goals
 
-## Workflow
+- Live trading execution.
+- Broker integrations.
+- Real-time data streaming.
+- Investment advice or alpha claims.
 
-1. Create or select an issue.
-2. Create a branch from the issue (see `AGENTS.md`).
-3. Implement in a single PR linked to that issue.
-4. Run `make check` locally.
-5. Open PR with required template content.
-6. CI runs `make check`.
-7. Merge PR after review and green checks.
+## Quickstart
 
-Detailed Lifecycle Guide:
-- `planning/PROJECT_LIFECYCLE_GUIDE.md`
-- Full step-by-step operations guide from template clone through version-to-version iteration.
+### Environment
 
-## Contract
+- Python `3.11+` (CI currently uses Python `3.12`).
+- Recommended: virtual environment.
 
-`make check` is the quality contract for local development, agents, and CI.
+Install core dev tooling:
 
-In this template it runs:
-- `ruff format --check .`
-- `ruff check .`
-- `pytest -q`
-
-The template includes a smoke test at `tests/test_smoke.py` so `pytest` is stable in fresh repos.
-
-## Planning Scaffolding
-
-Use:
-- `planning/BRIEF.template.md`
-- `planning/PLANNING_PROMPT.md`
-- `planning/ISSUE_SCHEMA.md`
-- `planning/examples/issues.v0.example.json`
-- `planning/PROJECT_LIFECYCLE_GUIDE.md`
-
-Recommended flow:
-1. Copy `planning/BRIEF.template.md` to `planning/brief.md` and fill it.
-2. Paste `planning/PLANNING_PROMPT.md` into Codex.
-3. Generate project-specific docs and `planning/issues/v0.json`.
-4. Commit planning baseline.
-
-## Issue Automation
-
-Script:
-- `automation/create_issues.py`
-
-CLI examples:
-- `python automation/create_issues.py --input planning/issues/v0.json --mode dry-run --milestone v0`
-- `python automation/create_issues.py --input planning/issues/v0.json --mode apply --milestone v0`
-
-GitHub Actions workflow:
-- `.github/workflows/create-issues.yml` (manual trigger only)
-
-Behavior:
-- `dry-run` is default and makes no API changes.
-- `apply` creates/uses milestone and creates issues.
-
-## Security and Permissions
-
-- CI workflow requires read-only repository permissions.
-- Create-issues workflow requires:
-  - `contents: read`
-  - `issues: write`
-
-Use least privilege tokens. Start with manual issue creation workflow triggers for safe rollout.
-
-## Recommended Labels
-
-- `agent-ready`
-- `blocked`
-- `needs-spec`
-- `priority:p0`, `priority:p1`, `priority:p2`
-- `type:feature`, `type:bug`, `type:chore`
-
-## How To Use With Codex
-
-Example implementation prompt:
-
-```text
-Implement issue #123. Follow AGENTS.md. One PR. Run make check. Open PR with Fixes #123.
+```powershell
+python -m pip install --upgrade pip
+python -m pip install ruff pytest pandas numpy matplotlib yfinance
 ```
 
-## Related Files
+### Quality Gate
 
-- Agent SOP: `AGENTS.md`
-- CI gate: `.github/workflows/ci.yml`
-- PR template: `.github/pull_request_template.md`
-- Issue templates: `.github/ISSUE_TEMPLATE/`
+Primary:
+
+```powershell
+make check
+```
+
+Fallback when `make` is unavailable:
+
+```powershell
+ruff format --check .
+ruff check .
+pytest -q
+```
+
+### Example v0 Backtest Command
+
+```powershell
+python -m quant_lab.cli backtest --symbol SPY --start 2020-01-01 --end 2021-12-31 --short-window 20 --long-window 50 --initial-cash 10000 --output-dir outputs/example
+```
+
+Expected outputs:
+
+- A metrics artifact containing CAGR, Sharpe Ratio, and Max Drawdown.
+- An equity curve plot image.
+- Run metadata (parameters and run context).
+
+## Repository Map
+
+- `src/quant_lab/`: backtesting package (data, strategy, engine, metrics, reporting, cli).
+- `tests/`: unit and integration tests.
+- `planning/`: brief, lifecycle docs, schema, and issue planning files.
+- `automation/`: issue automation scripts.
+
+## Development Workflow
+
+- One issue equals one PR.
+- Create an issue-scoped branch using conventions in `AGENTS.md`.
+- Keep PR scope atomic and limited to the linked issue.
+- Run `make check` before push/PR update.
+- Use PR body format from `.github/pull_request_template.md` with `Fixes #<issue-number>`.
+
+## Planning and Issue Automation
+
+- Planning schema: `planning/ISSUE_SCHEMA.md`
+- Example issues file: `planning/examples/issues.v0.example.json`
+- Planned backlog: `planning/issues/v0.json`
+
+Dry run issue generation:
+
+```powershell
+python automation/create_issues.py --input planning/issues/v0.json --mode dry-run --milestone v0
+```
+
+Apply issue generation:
+
+```powershell
+python automation/create_issues.py --input planning/issues/v0.json --mode apply --milestone v0
+```

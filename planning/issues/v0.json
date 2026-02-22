@@ -1,0 +1,338 @@
+{
+  "version": "v0",
+  "milestone": "v0",
+  "issues": [
+    {
+      "id": "QL-001",
+      "title": "Scaffold quant_lab package and core module contracts",
+      "type": "chore",
+      "summary": "Create the initial package layout and typed interfaces for the v0 backtesting pipeline.",
+      "problem": "Implementation work cannot proceed consistently because there is no agreed module scaffold or core contract surface.",
+      "scope": [
+        "Create src package skeleton for data, strategy, engine, metrics, reporting, and cli modules",
+        "Add minimal __init__.py files and shared type aliases or dataclasses for run inputs/outputs",
+        "Document module ownership boundaries in code-level docstrings"
+      ],
+      "out_of_scope": [
+        "Data provider integration",
+        "Strategy logic implementation",
+        "Backtest calculations"
+      ],
+      "acceptance_criteria": [
+        "The repository contains the agreed v0 module layout under src/quant_lab",
+        "Core interfaces for price frame, signal series, and backtest result are defined and importable",
+        "No runtime feature behavior is implemented beyond scaffolding"
+      ],
+      "how_to_verify": [
+        "make check",
+        "python -c \"import quant_lab\"",
+        "rg --files src/quant_lab"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:chore",
+        "priority:p1",
+        "area:core"
+      ],
+      "dependencies": [],
+      "estimate": "S"
+    },
+    {
+      "id": "QL-002",
+      "title": "Implement deterministic single-symbol data ingestion and normalization",
+      "type": "feature",
+      "summary": "Add data module functionality to fetch and normalize daily OHLCV history for one symbol.",
+      "problem": "Backtesting cannot run without deterministic and validated historical input data.",
+      "scope": [
+        "Implement data fetch function for one symbol and date range",
+        "Normalize output schema to required columns and sorted unique DatetimeIndex",
+        "Handle missing close values and duplicate timestamps deterministically"
+      ],
+      "out_of_scope": [
+        "Multi-symbol data ingestion",
+        "Intraday bars",
+        "Caching layer"
+      ],
+      "acceptance_criteria": [
+        "Data module returns a DataFrame with required normalized columns open, high, low, close, adj_close, volume",
+        "Returned index is ascending, unique, and timezone-naive",
+        "Rows with missing close are dropped deterministically"
+      ],
+      "how_to_verify": [
+        "make check",
+        "pytest -q tests -k data",
+        "python -m quant_lab.cli backtest --symbol SPY --start 2020-01-01 --end 2020-12-31 --short-window 20 --long-window 50 --initial-cash 10000 --output-dir outputs/verify_data"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:feature",
+        "priority:p1",
+        "area:data"
+      ],
+      "dependencies": [
+        "QL-001"
+      ],
+      "estimate": "M"
+    },
+    {
+      "id": "QL-003",
+      "title": "Implement SMA crossover signal generator",
+      "type": "feature",
+      "summary": "Build strategy module that emits deterministic 0/1 long-cash signals from SMA crossover logic.",
+      "problem": "The pipeline has no strategy decision layer to convert prices into tradable positions.",
+      "scope": [
+        "Implement short and long SMA calculation using close prices",
+        "Emit 0 or 1 signal values with warm-up default to 0",
+        "Add parameter validation for short and long window values"
+      ],
+      "out_of_scope": [
+        "Alternative indicators",
+        "Short-selling signals",
+        "Parameter optimization"
+      ],
+      "acceptance_criteria": [
+        "Signal output index matches input price index exactly",
+        "Signal values are restricted to 0 and 1",
+        "Crossover behavior is correct on boundary transition test cases"
+      ],
+      "how_to_verify": [
+        "make check",
+        "pytest -q tests -k strategy",
+        "python -m quant_lab.cli backtest --symbol SPY --start 2020-01-01 --end 2020-12-31 --short-window 10 --long-window 30 --initial-cash 10000 --output-dir outputs/verify_strategy"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:feature",
+        "priority:p1",
+        "area:strategy"
+      ],
+      "dependencies": [
+        "QL-001"
+      ],
+      "estimate": "M"
+    },
+    {
+      "id": "QL-004",
+      "title": "Implement deterministic long-cash backtest engine",
+      "type": "feature",
+      "summary": "Create engine module to transform normalized prices and 0/1 signals into returns and equity curve.",
+      "problem": "There is no execution model to evaluate strategy behavior over time.",
+      "scope": [
+        "Implement no-lookahead position application using shifted signal",
+        "Compute daily strategy returns and compounded equity curve",
+        "Return aligned outputs for equity, returns, and positions"
+      ],
+      "out_of_scope": [
+        "Transaction costs and slippage",
+        "Leverage and margin",
+        "Multi-asset portfolio accounting"
+      ],
+      "acceptance_criteria": [
+        "Engine output includes aligned series for equity curve, strategy returns, and positions",
+        "No-lookahead behavior is enforced through position shift and validated by tests",
+        "Engine fails with explicit error when bars are insufficient for configured windows"
+      ],
+      "how_to_verify": [
+        "make check",
+        "pytest -q tests -k engine",
+        "python -m quant_lab.cli backtest --symbol SPY --start 2020-01-01 --end 2021-12-31 --short-window 20 --long-window 50 --initial-cash 10000 --output-dir outputs/verify_engine"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:feature",
+        "priority:p1",
+        "area:engine"
+      ],
+      "dependencies": [
+        "QL-002",
+        "QL-003"
+      ],
+      "estimate": "M"
+    },
+    {
+      "id": "QL-005",
+      "title": "Implement performance metrics module",
+      "type": "feature",
+      "summary": "Compute v0 metrics CAGR, Sharpe Ratio, and Maximum Drawdown from backtest outputs.",
+      "problem": "Backtest runs are not interpretable without standardized performance metrics.",
+      "scope": [
+        "Implement deterministic CAGR computation from equity curve",
+        "Implement Sharpe Ratio from daily returns with fixed annualization constant 252",
+        "Implement Maximum Drawdown from rolling peak logic"
+      ],
+      "out_of_scope": [
+        "Sortino ratio",
+        "Calmar ratio",
+        "Attribution analytics"
+      ],
+      "acceptance_criteria": [
+        "Metrics module returns cagr, sharpe, and max_drawdown keys for valid backtest outputs",
+        "Sharpe returns deterministic 0.0 when return volatility is zero",
+        "Metric values match expected values on synthetic fixture tests"
+      ],
+      "how_to_verify": [
+        "make check",
+        "pytest -q tests -k metrics",
+        "python -m quant_lab.cli backtest --symbol SPY --start 2019-01-01 --end 2021-12-31 --short-window 20 --long-window 50 --initial-cash 10000 --output-dir outputs/verify_metrics"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:feature",
+        "priority:p1",
+        "area:metrics"
+      ],
+      "dependencies": [
+        "QL-004"
+      ],
+      "estimate": "S"
+    },
+    {
+      "id": "QL-006",
+      "title": "Implement reporting artifacts for backtest runs",
+      "type": "feature",
+      "summary": "Persist metrics, run metadata, and equity curve plot to deterministic artifact paths.",
+      "problem": "Users cannot inspect or compare run outcomes without durable output artifacts.",
+      "scope": [
+        "Write metrics artifact file in machine-readable format",
+        "Generate and save equity curve plot image",
+        "Write run metadata capturing parameters and execution context"
+      ],
+      "out_of_scope": [
+        "Interactive dashboards",
+        "Database persistence",
+        "Cloud artifact storage"
+      ],
+      "acceptance_criteria": [
+        "Successful run writes metrics, metadata, and plot artifacts to output directory",
+        "Artifact file names are deterministic and stable across identical runs",
+        "Metrics artifact content includes cagr, sharpe, and max_drawdown values"
+      ],
+      "how_to_verify": [
+        "make check",
+        "pytest -q tests -k reporting",
+        "python -m quant_lab.cli backtest --symbol SPY --start 2020-01-01 --end 2021-12-31 --short-window 20 --long-window 50 --initial-cash 10000 --output-dir outputs/verify_reporting"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:feature",
+        "priority:p2",
+        "area:reporting"
+      ],
+      "dependencies": [
+        "QL-005"
+      ],
+      "estimate": "M"
+    },
+    {
+      "id": "QL-007",
+      "title": "Implement CLI backtest command orchestration",
+      "type": "feature",
+      "summary": "Build the public CLI command that validates inputs and orchestrates the full v0 pipeline.",
+      "problem": "Users do not have a stable entry point to run v0 backtests end to end.",
+      "scope": [
+        "Implement python -m quant_lab.cli backtest command",
+        "Validate windows, cash, and date range before execution",
+        "Wire data, strategy, engine, metrics, and reporting modules together"
+      ],
+      "out_of_scope": [
+        "Notebook UX",
+        "Web UI",
+        "Batch multi-run orchestration"
+      ],
+      "acceptance_criteria": [
+        "CLI executes full pipeline and exits 0 on valid inputs",
+        "CLI rejects invalid window relationship and invalid date order with non-zero exit",
+        "CLI emits clear error message when data is insufficient for selected windows"
+      ],
+      "how_to_verify": [
+        "make check",
+        "pytest -q tests -k cli",
+        "python -m quant_lab.cli backtest --symbol SPY --start 2020-01-01 --end 2021-12-31 --short-window 20 --long-window 50 --initial-cash 10000 --output-dir outputs/verify_cli"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:feature",
+        "priority:p1",
+        "area:cli"
+      ],
+      "dependencies": [
+        "QL-006"
+      ],
+      "estimate": "M"
+    },
+    {
+      "id": "QL-008",
+      "title": "Add deterministic v0 test suite with offline integration fixture",
+      "type": "chore",
+      "summary": "Expand tests to cover module behavior and one network-free end-to-end scenario.",
+      "problem": "v0 correctness and reproducibility are not enforceable without deterministic test coverage.",
+      "scope": [
+        "Add unit tests for strategy, engine, and metrics edge cases",
+        "Add CLI validation tests for invalid windows and invalid date ranges",
+        "Add offline integration test using fixed CSV fixture that verifies deterministic artifacts and metrics"
+      ],
+      "out_of_scope": [
+        "Load testing",
+        "Network-dependent end-to-end tests",
+        "Benchmark suite"
+      ],
+      "acceptance_criteria": [
+        "Unit tests cover SMA boundary signals, engine position transitions, and metrics correctness",
+        "Offline integration test passes without external network dependency",
+        "Re-running the same fixture-driven backtest produces identical metrics values"
+      ],
+      "how_to_verify": [
+        "make check",
+        "pytest -q tests/unit",
+        "pytest -q tests/integration"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:chore",
+        "priority:p1",
+        "area:test"
+      ],
+      "dependencies": [
+        "QL-007"
+      ],
+      "estimate": "M"
+    },
+    {
+      "id": "QL-009",
+      "title": "Align product docs with implemented v0 behavior",
+      "type": "chore",
+      "summary": "Finalize README, SPEC, and ARCHITECTURE details to match shipped v0 behavior and verification steps.",
+      "problem": "Documentation drift reduces reproducibility and makes issue-driven implementation less reliable.",
+      "scope": [
+        "Update README examples to reflect actual CLI parameters and outputs",
+        "Reconcile SPEC and ARCHITECTURE contracts with final implementation behavior",
+        "Document exact verification commands and known v0 limitations"
+      ],
+      "out_of_scope": [
+        "v1 roadmap design",
+        "Architecture redesign",
+        "New feature implementation"
+      ],
+      "acceptance_criteria": [
+        "README, SPEC, and ARCHITECTURE are internally consistent with implemented v0 code",
+        "All documented verification commands execute successfully in the repository environment",
+        "v0 limitations and non-goals are explicitly stated across docs"
+      ],
+      "how_to_verify": [
+        "make check",
+        "python automation/create_issues.py --input planning/issues/v0.json --mode dry-run --milestone v0",
+        "rg \"long/cash\" README.md SPEC.md ARCHITECTURE.md"
+      ],
+      "labels": [
+        "agent-ready",
+        "type:chore",
+        "priority:p2",
+        "area:docs"
+      ],
+      "dependencies": [
+        "QL-008"
+      ],
+      "estimate": "S"
+    }
+  ]
+}
