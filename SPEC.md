@@ -78,7 +78,7 @@ Out of scope for v0:
 Each run must produce:
 - Metrics artifact (machine-readable, e.g. JSON).
 - Equity curve plot image (e.g. PNG).
-- Run metadata artifact capturing run parameters and timestamps/context used for reproducibility.
+- Run metadata artifact capturing run parameters used for reproducibility.
 
 ### FR-6 CLI Public Interface
 
@@ -164,4 +164,8 @@ CLI behavior:
 
 ### Quality Gate
 
-- `make check` passes locally and in CI.
+- `make check` passes locally and in CI when `make` is available.
+- Equivalent fallback commands pass in environments without `make`:
+  - `ruff format --check .`
+  - `ruff check .`
+  - `pytest -q`

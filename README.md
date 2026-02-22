@@ -62,7 +62,7 @@ Expected outputs:
 
 - A metrics artifact containing CAGR, Sharpe Ratio, and Max Drawdown.
 - An equity curve plot image.
-- Run metadata (parameters and run context).
+- Run metadata (CLI input parameters).
 
 ## Repository Map
 
@@ -78,6 +78,29 @@ Expected outputs:
 - Keep PR scope atomic and limited to the linked issue.
 - Run `make check` before push/PR update.
 - Use PR body format from `.github/pull_request_template.md` with `Fixes #<issue-number>`.
+
+### Verification Commands
+
+Core quality gate:
+
+```powershell
+make check
+```
+
+Fallback in environments without `make`:
+
+```powershell
+ruff format --check .
+ruff check .
+pytest -q
+```
+
+Additional deterministic suite checks:
+
+```powershell
+pytest -q tests/unit
+pytest -q tests/integration
+```
 
 ## Planning and Issue Automation
 
