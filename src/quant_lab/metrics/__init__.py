@@ -1,3 +1,5 @@
 """Metrics layer package for risk and performance calculations."""
 
-__all__: list[str] = []
+from .performance import compute_performance_metrics
+
+__all__ = ["compute_performance_metrics"]
