@@ -16,6 +16,30 @@ REQUIRED_COLUMNS: tuple[str, ...] = (
 )
 
 
+def _normalize_column_name(column: object) -> str:
+    return str(column).strip().lower().replace(" ", "_")
+
+
+def _canonicalize_columns(columns: pd.Index) -> list[str]:
+    if isinstance(columns, pd.MultiIndex):
+        required = set(REQUIRED_COLUMNS)
+        for level in range(columns.nlevels):
+            normalized_level = [
+                _normalize_column_name(value)
+                for value in columns.get_level_values(level)
+            ]
+            if required.issubset(set(normalized_level)):
+                return normalized_level
+
+        flat_columns: list[str] = []
+        for entry in columns.to_flat_index():
+            joined = "_".join(str(part) for part in entry if str(part).strip())
+            flat_columns.append(_normalize_column_name(joined))
+        return flat_columns
+
+    return [_normalize_column_name(col) for col in columns]
+
+
 def _default_downloader(symbol: str, start: str, end: str) -> pd.DataFrame:
     import yfinance as yf
 
@@ -24,6 +48,7 @@ def _default_downloader(symbol: str, start: str, end: str) -> pd.DataFrame:
         start=start,
         end=end,
         auto_adjust=False,
+        multi_level_index=False,
         progress=False,
     )
 
@@ -34,9 +59,7 @@ def normalize_price_data(raw_data: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("No price data returned.")
 
     normalized = raw_data.copy()
-    normalized.columns = [
-        str(col).strip().lower().replace(" ", "_") for col in normalized.columns
-    ]
+    normalized.columns = _canonicalize_columns(normalized.columns)
 
     missing_columns = [col for col in REQUIRED_COLUMNS if col not in normalized.columns]
     if missing_columns:

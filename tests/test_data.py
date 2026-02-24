@@ -68,6 +68,27 @@ def test_normalize_price_data_requires_expected_columns() -> None:
         normalize_price_data(raw)
 
 
+def test_normalize_price_data_accepts_multiindex_columns() -> None:
+    raw = pd.DataFrame(
+        [[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], [10, 20, 30]],
+        index=["Open", "High", "Low", "Close", "Adj Close", "Volume"],
+        columns=pd.to_datetime(["2020-01-01", "2020-01-02", "2020-01-03"]),
+    ).T
+    raw.columns = pd.MultiIndex.from_product([raw.columns, ["SPY"]])
+
+    normalized = normalize_price_data(raw)
+
+    assert list(normalized.columns) == [
+        "open",
+        "high",
+        "low",
+        "close",
+        "adj_close",
+        "volume",
+    ]
+    assert len(normalized) == 3
+
+
 def test_fetch_price_data_uses_downloader_and_normalizes() -> None:
     def fake_downloader(symbol: str, start: str, end: str) -> pd.DataFrame:
         assert symbol == "SPY"
